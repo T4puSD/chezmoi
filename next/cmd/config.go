@@ -48,7 +48,7 @@ type Config struct {
 	err        error
 	fs         vfs.FS
 	system     chezmoi.System
-	colored    bool
+	color      bool
 
 	// Global configuration, settable in the config file.
 	SourceDir string
@@ -649,27 +649,27 @@ func (c *Config) persistentPreRunRootE(cmd *cobra.Command, args []string) error 
 	}
 
 	if colored, err := strconv.ParseBool(c.Color); err == nil {
-		c.colored = colored
+		c.color = colored
 	} else {
 		switch c.Color {
 		case "on":
-			c.colored = true
+			c.color = true
 		case "off":
-			c.colored = false
+			c.color = false
 		case "auto":
 			if _, ok := os.LookupEnv("NO_COLOR"); ok {
-				c.colored = false
+				c.color = false
 			} else if stdout, ok := c.stdout.(*os.File); ok {
-				c.colored = terminal.IsTerminal(int(stdout.Fd()))
+				c.color = terminal.IsTerminal(int(stdout.Fd()))
 			} else {
-				c.colored = false
+				c.color = false
 			}
 		default:
 			return fmt.Errorf("%s: invalid color value", c.Color)
 		}
 	}
 
-	if c.colored {
+	if c.color {
 		if err := enableVirtualTerminalProcessing(c.stdout); err != nil {
 			return err
 		}
@@ -686,12 +686,13 @@ func (c *Config) persistentPreRunRootE(cmd *cobra.Command, args []string) error 
 	if c.dryRun {
 		c.system = chezmoi.NewDryRunSystem(c.system)
 	}
+	if c.verbose {
+		c.system = chezmoi.NewGitDiffSystem(c.system, "", c.color)
+	}
 	if c.debug {
 		logger := log.New(c.stderr, "chezmoi: ", log.LstdFlags|log.Lmsgprefix)
 		c.system = chezmoi.NewDebugSystem(c.system, logger)
 	}
-	// FIXME verbose
-
 	// Apply any fixes for snap, if needed.
 	if err := c.snapFix(); err != nil {
 		return err

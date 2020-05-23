@@ -33,7 +33,7 @@ func init() {
 }
 
 func (c *Config) runDiffCmd(cmd *cobra.Command, args []string) error {
-	gitDiffSystem := chezmoi.NewGitDiffSystem(chezmoi.NewDiscardWritesSystem(c.system), c.DestDir+chezmoi.PathSeparatorStr, c.colored)
+	gitDiffSystem := chezmoi.NewGitDiffSystem(chezmoi.NewDiscardWritesSystem(c.system), c.DestDir+chezmoi.PathSeparatorStr, c.color)
 	if err := c.applyArgs(gitDiffSystem, c.DestDir, args, c.Diff.include, c.Diff.recursive); err != nil {
 		return err
 	}
