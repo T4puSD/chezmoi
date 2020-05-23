@@ -26,6 +26,7 @@ func (s *DiscardWritesSystem) Stat(name string) (os.FileInfo, error)  { return s
 func (s *DiscardWritesSystem) ReadDir(dirname string) ([]os.FileInfo, error) {
 	return s.s.ReadDir(dirname)
 }
+
 func (s *DiscardWritesSystem) ReadFile(filename string) ([]byte, error) {
 	return s.s.ReadFile(filename)
 }
