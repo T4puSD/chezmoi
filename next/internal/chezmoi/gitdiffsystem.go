@@ -18,14 +18,21 @@ import (
 type GitDiffSystem struct {
 	s              System
 	prefix         string
+	sb             *strings.Builder
 	unifiedEncoder *diff.UnifiedEncoder
 }
 
 // NewGitDiffSystem returns a new GitDiffSystem.
-func NewGitDiffSystem(unifiedEncoder *diff.UnifiedEncoder, s System, prefix string) *GitDiffSystem {
+func NewGitDiffSystem(s System, prefix string, color bool) *GitDiffSystem {
+	sb := &strings.Builder{}
+	unifiedEncoder := diff.NewUnifiedEncoder(sb, diff.DefaultContextLines)
+	if color {
+		unifiedEncoder.SetColor(diff.NewColorConfig())
+	}
 	return &GitDiffSystem{
 		s:              s,
 		prefix:         prefix,
+		sb:             sb,
 		unifiedEncoder: unifiedEncoder,
 	}
 }
@@ -179,6 +186,10 @@ func (s *GitDiffSystem) RunScript(scriptname, dir string, data []byte) error {
 // Stat implements System.Stat.
 func (s *GitDiffSystem) Stat(name string) (os.FileInfo, error) {
 	return s.s.Stat(name)
+}
+
+func (s *GitDiffSystem) String() string {
+	return s.sb.String()
 }
 
 // Rename implements System.Rename.

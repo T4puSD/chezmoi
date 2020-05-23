@@ -1,9 +1,6 @@
 package cmd
 
 import (
-	"strings"
-
-	"github.com/go-git/go-git/v5/plumbing/format/diff"
 	"github.com/spf13/cobra"
 
 	"github.com/twpayne/chezmoi/next/internal/chezmoi"
@@ -36,14 +33,9 @@ func init() {
 }
 
 func (c *Config) runDiffCmd(cmd *cobra.Command, args []string) error {
-	sb := &strings.Builder{}
-	unifiedEncoder := diff.NewUnifiedEncoder(sb, diff.DefaultContextLines)
-	if c.colored {
-		unifiedEncoder.SetColor(diff.NewColorConfig())
-	}
-	gitDiffSystem := chezmoi.NewGitDiffSystem(unifiedEncoder, chezmoi.NewDiscardWritesSystem(c.system), c.DestDir+chezmoi.PathSeparatorStr)
+	gitDiffSystem := chezmoi.NewGitDiffSystem(chezmoi.NewDiscardWritesSystem(c.system), c.DestDir+chezmoi.PathSeparatorStr, c.colored)
 	if err := c.applyArgs(gitDiffSystem, c.DestDir, args, c.Diff.include, c.Diff.recursive); err != nil {
 		return err
 	}
-	return c.writeOutputString(sb.String())
+	return c.writeOutputString(gitDiffSystem.String())
 }
