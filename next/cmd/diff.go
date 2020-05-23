@@ -41,7 +41,7 @@ func (c *Config) runDiffCmd(cmd *cobra.Command, args []string) error {
 	if c.colored {
 		unifiedEncoder.SetColor(diff.NewColorConfig())
 	}
-	gitDiffSystem := chezmoi.NewGitDiffSystem(unifiedEncoder, c.system, c.DestDir+chezmoi.PathSeparatorStr)
+	gitDiffSystem := chezmoi.NewGitDiffSystem(unifiedEncoder, chezmoi.NewDiscardWritesSystem(c.system), c.DestDir+chezmoi.PathSeparatorStr)
 	if err := c.applyArgs(gitDiffSystem, c.DestDir, args, c.Diff.include, c.Diff.recursive); err != nil {
 		return err
 	}

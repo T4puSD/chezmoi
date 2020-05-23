@@ -8,7 +8,7 @@ import (
 
 // A TARSystem is a System that writes to a TAR archive.
 type TARSystem struct {
-	nullSystem
+	nullReaderSystem
 	w              *tar.Writer
 	headerTemplate tar.Header
 }
@@ -29,6 +29,11 @@ func (s *TARSystem) Chmod(name string, mode os.FileMode) error {
 // Close closes m.
 func (s *TARSystem) Close() error {
 	return s.w.Close()
+}
+
+// Delete implements System.Delete.
+func (s *TARSystem) Delete(bucket, key []byte) error {
+	return os.ErrPermission
 }
 
 // Mkdir implements System.Mkdir.
@@ -53,6 +58,11 @@ func (s *TARSystem) Rename(oldpath, newpath string) error {
 // RunScript implements System.RunScript.
 func (s *TARSystem) RunScript(scriptname, dir string, data []byte) error {
 	return s.WriteFile(scriptname, data, 0o700)
+}
+
+// Set implements System.Set.
+func (s *TARSystem) Set(bucket, key, value []byte) error {
+	return nil
 }
 
 // WriteFile implements System.WriteFile.

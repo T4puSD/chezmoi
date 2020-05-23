@@ -15,7 +15,7 @@ const (
 
 // A DumpSystem is a System that writes to a data file.
 type DumpSystem struct {
-	nullSystem
+	nullReaderSystem
 	data map[string]interface{}
 }
 
@@ -61,6 +61,11 @@ func (s *DumpSystem) Data() interface{} {
 	return s.data
 }
 
+// Delete implements System.Delete.
+func (s *DumpSystem) Delete(bucket, key []byte) error {
+	return os.ErrPermission
+}
+
 // Mkdir implements System.Mkdir.
 func (s *DumpSystem) Mkdir(dirname string, perm os.FileMode) error {
 	if _, exists := s.data[dirname]; exists {
@@ -79,6 +84,11 @@ func (s *DumpSystem) RemoveAll(name string) error {
 	return os.ErrPermission
 }
 
+// Rename implements System.Rename.
+func (s *DumpSystem) Rename(oldpath, newpath string) error {
+	return os.ErrPermission
+}
+
 // RunScript implements System.RunScript.
 func (s *DumpSystem) RunScript(scriptname, dir string, data []byte) error {
 	if _, exists := s.data[scriptname]; exists {
@@ -89,6 +99,11 @@ func (s *DumpSystem) RunScript(scriptname, dir string, data []byte) error {
 		Name:     scriptname,
 		Contents: string(data),
 	}
+	return nil
+}
+
+// Set implements System.Set.
+func (s *DumpSystem) Set(bucket, key, value []byte) error {
 	return nil
 }
 

@@ -13,8 +13,8 @@ import (
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
-// A GitDiffSystem wraps a System and logs all of the actions it would execute
-// as a git diff.
+// A GitDiffSystem wraps a System and logs all of the actions executed as a git
+// diff.
 type GitDiffSystem struct {
 	s              System
 	prefix         string
@@ -42,7 +42,7 @@ func (s *GitDiffSystem) Chmod(name string, mode os.FileMode) error {
 		return err
 	}
 	path := s.trimPrefix(name)
-	return s.unifiedEncoder.Encode(&gitDiffPatch{
+	if err := s.unifiedEncoder.Encode(&gitDiffPatch{
 		filePatches: []diff.FilePatch{
 			&gitDiffFilePatch{
 				from: &gitDiffFile{
@@ -57,12 +57,15 @@ func (s *GitDiffSystem) Chmod(name string, mode os.FileMode) error {
 				},
 			},
 		},
-	})
+	}); err != nil {
+		return err
+	}
+	return s.s.Chmod(name, mode)
 }
 
 // Delete implements System.Delete.
 func (s *GitDiffSystem) Delete(bucket, key []byte) error {
-	return nil
+	return s.s.Delete(bucket, key)
 }
 
 // Get implements System.Get.
@@ -91,7 +94,7 @@ func (s *GitDiffSystem) Mkdir(name string, perm os.FileMode) error {
 	if err != nil {
 		return err
 	}
-	return s.unifiedEncoder.Encode(&gitDiffPatch{
+	if err := s.unifiedEncoder.Encode(&gitDiffPatch{
 		filePatches: []diff.FilePatch{
 			&gitDiffFilePatch{
 				to: &gitDiffFile{
@@ -101,7 +104,10 @@ func (s *GitDiffSystem) Mkdir(name string, perm os.FileMode) error {
 				},
 			},
 		},
-	})
+	}); err != nil {
+		return err
+	}
+	return s.s.Mkdir(name, perm)
 }
 
 // ReadDir implements System.ReadDir.
@@ -125,7 +131,7 @@ func (s *GitDiffSystem) RemoveAll(name string) error {
 	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
-	return s.unifiedEncoder.Encode(&gitDiffPatch{
+	if err := s.unifiedEncoder.Encode(&gitDiffPatch{
 		filePatches: []diff.FilePatch{
 			&gitDiffFilePatch{
 				from: &gitDiffFile{
@@ -135,7 +141,10 @@ func (s *GitDiffSystem) RemoveAll(name string) error {
 				},
 			},
 		},
-	})
+	}); err != nil {
+		return err
+	}
+	return s.s.RemoveAll(name)
 }
 
 // RunScript implements System.RunScript.
@@ -149,7 +158,7 @@ func (s *GitDiffSystem) RunScript(scriptname, dir string, data []byte) error {
 		}
 		chunks = append(chunks, chunk)
 	}
-	return s.unifiedEncoder.Encode(&gitDiffPatch{
+	if err := s.unifiedEncoder.Encode(&gitDiffPatch{
 		filePatches: []diff.FilePatch{
 			&gitDiffFilePatch{
 				isBinary: isBinary,
@@ -161,7 +170,10 @@ func (s *GitDiffSystem) RunScript(scriptname, dir string, data []byte) error {
 				chunks: chunks,
 			},
 		},
-	})
+	}); err != nil {
+		return err
+	}
+	return s.s.RunScript(scriptname, dir, data)
 }
 
 // Stat implements System.Stat.
@@ -175,7 +187,7 @@ func (s *GitDiffSystem) Rename(oldpath, newpath string) error {
 	if err != nil {
 		return err
 	}
-	return s.unifiedEncoder.Encode(&gitDiffPatch{
+	if err := s.unifiedEncoder.Encode(&gitDiffPatch{
 		filePatches: []diff.FilePatch{
 			&gitDiffFilePatch{
 				from: &gitDiffFile{
@@ -190,12 +202,15 @@ func (s *GitDiffSystem) Rename(oldpath, newpath string) error {
 				},
 			},
 		},
-	})
+	}); err != nil {
+		return err
+	}
+	return s.s.Rename(oldpath, newpath)
 }
 
 // Set implements System.Set.
 func (s *GitDiffSystem) Set(bucket, key, value []byte) error {
-	return nil
+	return s.s.Set(bucket, key, value)
 }
 
 // WriteFile implements System.WriteFile.
@@ -222,7 +237,7 @@ func (s *GitDiffSystem) WriteFile(filename string, data []byte, perm os.FileMode
 	if !isBinary {
 		chunks = diffChunks(string(fromData), string(data))
 	}
-	return s.unifiedEncoder.Encode(&gitDiffPatch{
+	if err := s.unifiedEncoder.Encode(&gitDiffPatch{
 		filePatches: []diff.FilePatch{
 			&gitDiffFilePatch{
 				isBinary: isBinary,
@@ -239,12 +254,15 @@ func (s *GitDiffSystem) WriteFile(filename string, data []byte, perm os.FileMode
 				chunks: chunks,
 			},
 		},
-	})
+	}); err != nil {
+		return err
+	}
+	return s.s.WriteFile(filename, data, perm)
 }
 
 // WriteSymlink implements System.WriteSymlink.
 func (s *GitDiffSystem) WriteSymlink(oldname, newname string) error {
-	return s.unifiedEncoder.Encode(&gitDiffPatch{
+	if err := s.unifiedEncoder.Encode(&gitDiffPatch{
 		filePatches: []diff.FilePatch{
 			&gitDiffFilePatch{
 				to: &gitDiffFile{
@@ -260,7 +278,10 @@ func (s *GitDiffSystem) WriteSymlink(oldname, newname string) error {
 				},
 			},
 		},
-	})
+	}); err != nil {
+		return err
+	}
+	return s.s.WriteSymlink(oldname, newname)
 }
 
 func (s *GitDiffSystem) getFileMode(name string) (filemode.FileMode, os.FileInfo, error) {

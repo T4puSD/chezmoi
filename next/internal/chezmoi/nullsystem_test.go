@@ -1,3 +1,6 @@
 package chezmoi
 
-var _ System = nullSystem{}
+var _ System = struct {
+	nullReaderSystem
+	nullWriterSystem
+}{}

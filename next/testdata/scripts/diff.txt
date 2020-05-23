@@ -3,7 +3,7 @@ mkhomedir
 mksourcedir
 
 # test that chezmoi diff generates no output when the source and destination states are equal
-chezmoi diff
+chezmoi --debug diff
 ! stdout .
 
 # test that chezmoi diff generates a diff when a file is added to the source state
